@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 
 function App() {
     const [selectedFile, setSelectedFile] = useState();
@@ -29,8 +29,21 @@ function App() {
 
             .then((result) => {
                 console.log('Success:', result);
-                setIsFilePicked(false);
-                setSelectedFile(null);
+
+                fetch(`http://localhost:8000/api/download/${result.id}`)
+                    .then((response) => response.blob())
+                    .then((result) => {
+                        const url = window.URL.createObjectURL(result);
+                        const a = document.createElement('a');
+                        a.style.display = 'none';
+                        a.href = url;
+                        a.download = 'result';
+                        document.body.appendChild(a);
+                        a.click();
+                        window.URL.revokeObjectURL(url);
+                        setIsFilePicked(false);
+                        setSelectedFile(null);
+                    });
             })
 
             .catch((error) => {
