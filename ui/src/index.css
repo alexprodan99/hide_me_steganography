@@ -1,0 +1,16 @@
+.app {
+    text-align: center;
+}
+
+#lbl-operation {
+    margin-right: 5px;
+}
+
+textarea {
+    resize: none;
+    margin-bottom: 5px;
+}
+
+.form-group {
+    margin-bottom: 5px;
+}

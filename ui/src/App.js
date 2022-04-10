@@ -5,6 +5,12 @@ function App() {
 
     const [isFilePicked, setIsFilePicked] = useState(false);
 
+    const [operation, setOperation] = useState('encode');
+
+    const [text, setText] = useState('');
+
+    const [decodedText, setDecodedText] = useState('');
+
     const changeHandler = (event) => {
         setSelectedFile(event.target.files[0]);
 
@@ -28,31 +34,44 @@ function App() {
             .then((response) => response.json())
 
             .then((result) => {
-                console.log('Success:', result);
-
-                fetch(`http://localhost:8000/api/download/${result.id}`)
-                    .then((response) => response.blob())
+                fetch(
+                    `http://localhost:8000/api/${operation}?id=${result.id}&secret_text=${text}`
+                )
+                    .then((response) => {
+                        return operation === 'encode'
+                            ? response.blob()
+                            : response.json();
+                    })
                     .then((result) => {
-                        const url = window.URL.createObjectURL(result);
-                        const a = document.createElement('a');
-                        a.style.display = 'none';
-                        a.href = url;
-                        a.download = 'result';
-                        document.body.appendChild(a);
-                        a.click();
-                        window.URL.revokeObjectURL(url);
-                        setIsFilePicked(false);
-                        setSelectedFile(null);
+                        if (operation === 'encode') {
+                            // download image
+                            const url = window.URL.createObjectURL(result);
+                            const a = document.createElement('a');
+                            a.style.display = 'none';
+                            a.href = url;
+                            a.download = 'encoded';
+                            document.body.appendChild(a);
+                            a.click();
+                            window.URL.revokeObjectURL(url);
+                            setIsFilePicked(false);
+                            setSelectedFile(null);
+                            setText('');
+                        } else {
+                            // display decoded text
+                            setDecodedText(result.text);
+                        }
+                    })
+                    .catch((error) => {
+                        console.error('Error:', error);
                     });
             })
-
             .catch((error) => {
                 console.error('Error:', error);
             });
     };
 
     return (
-        <div style={{ textAlign: 'center' }}>
+        <div className="app">
             <input type="file" name="file" onChange={changeHandler} />
 
             {isFilePicked ? (
@@ -74,9 +93,35 @@ function App() {
                 <p>Select a file to show details</p>
             )}
 
+            <div className="form-group">
+                <label htmlFor="operation" id="lbl-operation">
+                    Option
+                </label>
+                <select
+                    id="operation"
+                    value={operation}
+                    onChange={(event) => setOperation(event.target.value)}
+                >
+                    <option value="encode">Encode</option>
+                    <option value="decode">Decode</option>
+                </select>
+            </div>
+
+            {operation === 'encode' && (
+                <textarea
+                    placeholder="Type your secret text here"
+                    value={text}
+                    onChange={(event) => setText(event.target.value)}
+                    rows="10"
+                    cols="100"
+                ></textarea>
+            )}
+
             <div>
                 <button onClick={handleSubmission}>Submit</button>
             </div>
+
+            {decodedText && <h5>{decodedText}</h5>}
         </div>
     );
 }

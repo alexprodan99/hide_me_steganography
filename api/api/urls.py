@@ -1,8 +1,9 @@
 from django.urls import path
 
-from .views import FileView
+from .views import UploadFileView, EncodeFileView, DecodeFileView
 
 urlpatterns = [
-    path('upload', FileView.as_view()),
-    path('download/<id>', FileView.as_view())
+    path('upload', UploadFileView.as_view()),
+    path('encode', EncodeFileView.as_view()),
+    path('decode', DecodeFileView.as_view())
 ]
