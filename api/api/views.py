@@ -1,6 +1,8 @@
 import os
 import cv2
 import mimetypes
+import imghdr
+from .affine_cipher import *
 from .algorithms import *
 from django.http.response import HttpResponse
 from rest_framework.views import APIView
@@ -42,9 +44,18 @@ class DecodeFileView(APIView):
             
             if not os.path.exists(file_path):
                 return Response({'message' : 'Specified file does not exists'}, status=status.HTTP_404_NOT_FOUND)
-            image = cv2.imread(file_path)
             
-            decoded_text = show_data(image)
+            # check if file is an image
+            if imghdr.what(file_path):
+                image = cv2.imread(file_path)
+                decoded_text = show_data(image)
+            else:
+                with open(file_path, 'rb') as file:
+                    content = file.read()
+                    offset = content.rindex(affine_encrypt('‎', CIPHER_KEY).encode('ascii'), 0, len(content)-1)
+                    file.seek(offset + 1)
+                    
+                    decoded_text = affine_decrypt(file.read().decode('ascii'), CIPHER_KEY)
             return Response(data={'text' : decoded_text}, status=status.HTTP_200_OK)
         else:
             return Response({'message' : 'Specified file does not exists'}, status=status.HTTP_404_NOT_FOUND)
@@ -70,16 +81,26 @@ class EncodeFileView(APIView):
                 return Response({'message' : 'Specified file does not exists'}, status=status.HTTP_404_NOT_FOUND)
             response = Response({}, status=status.HTTP_200_OK)
             
-            image = cv2.imread(file_path)
+            # check if file is an image
+            if imghdr.what(file_path):
+                image = cv2.imread(file_path)
+                encoded_image = hide_data(image, secret_text)
+                cv2.imwrite(file_path, encoded_image)
+            else:
+                with open(file_path, 'ab') as file_writer:
+                    # invisible character as delimiter
+                    text_to_insert = f'‎ {secret_text}‎'
+                    encrypted_text = affine_encrypt(text_to_insert, CIPHER_KEY)
+                    file_writer.write(encrypted_text.encode('ascii'))
+
+            with open(file_path, 'rb') as file:
+                    mime_type = mimetypes.guess_type(file_path)
+                    response = HttpResponse(file, content_type=mime_type)
+                    response['Content-Disposition'] = "attachment; filename=%s" % (file_name)
             
-            encoded_image = hide_data(image, secret_text)
-            cv2.imwrite(file_path, encoded_image)
-            with open(file_path, "rb") as file:
-                mime_type = mimetypes.guess_type(file_path)
-                response = HttpResponse(file, content_type=mime_type)
-                response['Content-Disposition'] = "attachment; filename=%s" % (file_name)
-            
-            return response
+            return response      
+                    
+                    
         else:
             return Response({'message' : 'Specified file does not exists'}, status=status.HTTP_404_NOT_FOUND)
         
