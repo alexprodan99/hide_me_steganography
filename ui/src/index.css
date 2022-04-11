@@ -14,3 +14,10 @@ textarea {
 .form-group {
     margin-bottom: 5px;
 }
+
+div.alert.alert-danger {
+    background-color: #ee3030;
+    padding: 20px;
+    margin-bottom: 5px;
+    color: #ffffff;
+}

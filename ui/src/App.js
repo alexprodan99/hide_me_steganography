@@ -11,6 +11,8 @@ function App() {
 
     const [decodedText, setDecodedText] = useState('');
 
+    const [errorMsg, setErrorMsg] = useState('');
+
     const changeHandler = (event) => {
         setSelectedFile(event.target.files[0]);
 
@@ -60,18 +62,20 @@ function App() {
                             // display decoded text
                             setDecodedText(result.text);
                         }
+                        setErrorMsg('');
                     })
                     .catch((error) => {
-                        console.error('Error:', error);
+                        setErrorMsg(error.message);
                     });
             })
             .catch((error) => {
-                console.error('Error:', error);
+                setErrorMsg(error.message);
             });
     };
 
     return (
         <div className="app">
+            {errorMsg && <div className="alert alert-danger">{errorMsg}</div>}
             <input type="file" name="file" onChange={changeHandler} />
 
             {isFilePicked ? (
