@@ -1,10 +1,10 @@
-# hide_me_steganography
+<img src="stegano.png" width="100%" height="400"/>
 
 # Table of Contents
 
 - [Features](#features)
 - [Implementation details](#implementation-details)
-- [Technologies used](#technologies-used)
+- [Tech stack](#tech-stack)
   - [Frontend](#frontend)
   - [Backend](#backend)
 
@@ -21,7 +21,7 @@
 - When encoding/decoding text from other file formats, an affine cipher was used to hide/show the actual message, and the message itself was hidden at the end of the file.
   **\* This method is not advised for text files because it simply appends encrypted text at the end. \***
 
-## Technologies used
+## Tech stack
 
 ### Frontend
 
